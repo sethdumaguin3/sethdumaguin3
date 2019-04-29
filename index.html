@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>Display a map</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    h2,
+    h3 {
+      margin: 10px;
+      font-size: 1.2em;
+    }
+
+    h3 {
+      font-size: 1em;
+    }
+
+    p {
+      font-size: 0.85em;
+      margin: 10px;
+      text-align: left;
+    }
+
+    /**
+    * Create a position for the map
+    * on the page */
+    #map {
+      padding-bottom: 100px;
+      margin-bottom: 100px;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+/*      height: 75%;*/
+    }
+
+    /**
+    * Set rules for how the map overlays
+    * (information box and legend) will be displayed
+    * on the page. */
+    .map-overlay {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.8);
+      margin-right: 50px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+    }
+
+    .map-overlay-1 {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.8);
+      margin-right: 240px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+    }
+
+    .map-overlay-2 {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.8);
+      margin-right: 55px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+    }
+
+    #features {
+      top: 0;
+      height: 140px;
+      margin-top: 10px;
+      width: 250px;
+    }
+
+    #legend {
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      line-height: 18px;
+      height: 200px;
+      margin-bottom: 120px;
+      width: 100px;
+    }
+
+    #legend-1 {
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      line-height: 18px;
+      height: 200px;
+      margin-bottom: 120px;
+      width: 170px;
+    }
+
+    .legend-key {
+      display: inline-block;
+      border-radius: 20%;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+    }
+
+    .legend-key-1 {
+      display: inline-block;
+      border-radius: 20%;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+    }
+
+    #lamp {
+        height: 25px;
+        width: 25px;
+        background-color: #f6f465;
+        border-radius: 50%;
+    }
+
+    #outer-circle {
+    top: 10px;
+    background: #4169e1;
+    border-radius: 100%;
+    height: 18px;
+    width: 18px;
+    position: relative;
+    box-shadow: 0 0 0 5px #ff0000;
+    margin:15px;
+    }
+
+
+    .left {
+        float: left; 
+        width: 50%;
+    }
+
+    .right {
+        float: right; width: 50%;
+        z-index: 1;
+    }
+
+    .splash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        background-size: 100% 100%;
+        z-index:99;        
+        background-image: url("https://www.ischool.berkeley.edu/sites/all/themes/custom/i_school/images/homepage_hero/1_campanile_at_night.jpg");
+    }
+
+
+    .center-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 100vh;
+  }
+
+
+  </style>
+</head>
+<body>
+
+<div class="splash">
+  <div class="center-screen">
+    <h2 style="font-size: 75px; color: #FDB515">
+      Crimes Around <br>
+      UC Berkeley
+    </h2>
+    <button type="button" class="button"> <br> Learn More <br> <br></button>
+  </div>
+</div>
+<div id='map'></div>
+<div class='map-overlay' id='features'><h2>Crime, Location, & Time</h2><div id='pd'><p>Hover over a Crime Scene</p></div></div>
+<div class='map-overlay-1' id='legend'>
+  <h3>Crime Density</h3>
+</div>
+<div class='map-overlay-2' id="legend-1">
+  <h3>Symbols</h3>
+  <div class="left">
+    <img src="img/light.png" width="60" height="60">
+    <br>
+    <img src="img/emergency-phone-15.svg" width="60" height="60">
+    <br>
+    <img src="img/campus_route.png" width="60" height="10">
+  </div>
+  <div class="right">
+    <br>
+    Street Lamps
+    <br>
+    <br>
+    Emergency Phones
+    <br>
+    <br>
+    Campus Lamps
+  </div>
+</div>
+
+
+<section style="padding-top: 950px; padding-bottom: 100px">
+  <h1 class="text-center">Introduction</h1>
+  <div class="container">
+    <div class="row">
+      <div class="col"></div>
+      <div class="col-16">
+          The project "Crimes Around UC Berkeley" is a web map that visualizes the places where crimes took place around the campus of University of California, Berkeley. This map focuses more on crimes that happened around night time, specifically times between 6 pm and 6 am. The data that are seen on the map are crimes where the victim was walking when the crime took place. These crimes were chosen since the purpose of this map was to show where crimes happen around the campus and if there is a way for students to get back to their dorms and apartments safely. In addition to the crimes scenes being mapped, street lamps, both in campus and outside campus, and emergency phone stations were also mapped. This map will serve a multi purpose of mapping out where crimes took place, but also shows users what places have these emergency phone booths and which streets are not dark.
+          <br> <br>
+          Each crime was separated based on how severe the crime was. The scale that was created to give a "severity score" for each crime was a range between 1 to 10, where 1 is the least severe and 10 is the most severe. 
+          <br> <br>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th scope="col">Crime</th>
+                <th scope="col">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Disorderly Conduct</th>
+                <td>1</td>
+              </tr>
+              <tr>
+                <th scope="row">Drug Violation</th>
+                <td>1</td>
+              </tr>
+              <tr>
+                <th scope="row">Larceny</th>
+                <td colspan="2">3</td>
+              </tr>
+              <tr>
+                <th scope="row">Assault</th>
+                <td colspan="2">5</td>
+              </tr>
+              <tr>
+                <th scope="row">Battery</th>
+                <td colspan="2">5</td>
+              </tr>
+              <tr>
+                <th scope="row">Attempted Robbery</th>
+                <td colspan="2">5</td>
+              </tr>
+              <tr>
+                <th scope="row">Attempted Sexual Assault</th>
+                <td colspan="2">6</td>
+              </tr>
+              <tr>
+                <th scope="row">Attempted Armed Robbery</th>
+                <td colspan="2">6</td>
+              </tr>
+              <tr>
+                <th scope="row">Robbery</th>
+                <td colspan="2">6</td>
+              </tr>
+              <tr>
+                <th scope="row">Aggravated assault</th>
+                <td colspan="2">7</td>
+              </tr>
+              <tr>
+                <th scope="row">Attempted strong arm robbery</th>
+                <td colspan="2">7</td>
+              </tr>
+              <tr>
+                <th scope="row">Sexual assault</th>
+                <td colspan="2">7</td>
+              </tr>
+              <tr>
+                <th scope="row">Armed robbery </th>
+                <td colspan="2">8</td>
+              </tr>
+              <tr>
+                <th scope="row">Attempted homicide</th>
+                <td colspan="2">8</td>
+              </tr>
+              <tr>
+                <th scope="row">Strong arm robbery</th>
+                <td colspan="2">8</td>
+              </tr>
+              <tr>
+                <th scope="row">Rape</th>
+                <td colspan="2">9</td>
+              </tr>
+              <tr>
+                <th scope="row">Stabbing</th>
+                <td colspan="2">9</td>
+              </tr>
+              <tr>
+                <th scope="row">Homicide</th>
+                <td colspan="2">10</td>
+              </tr>
+              <tr>
+                <th scope="row">Kidnapping</th>
+                <td colspan="2">10</td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+      <div class="col"></div>
+    </div>
+  </div>
+  <br>
+  <h1 class="text-center">Analysis</h1>
+  <div class="container">
+    <div class="row">
+      <div class="col"></div>
+      <div class="col-3"></div>
+        <img src="img/time.png">
+      <div class="col-3">
+        <br>
+        The plot shown here is a bar graph that measures the number of crimes that happen during each hour between 6 pm to 6 am. We can see here that more crimes happen during the time of 6 pm to midnight. This seems like the case because this is the time where students walk home from campus. This is usually the time when students finish class and go home. In addition during fall and winter time, 6 pm is the time where it usually gets dark outside. 
+      </div>
+      <div class="col"></div>
+      <div class="col-3"></div>
+        <img src="img/score.png">
+      <div class="col-3">
+        The plot here shows the total crime for each severity score. The table that shows what each number means is shown above. From the plot, it shows that larceny is the crime that commonly happens around Berkeley. Larceny is the most commonly type of crime that happens around Berkeley since most criminals tends to target student walking alone and attempt to steal the student's backpack with all their valuables that might cost a lot such as their laptop, phones, etc. 
+      </div>
+      </div>
+      
+      
+    </div>
+  </div>
+  <br>
+  <h1 class="text-center">Data Set</h1>
+  <div class="container">
+    <div class="row">
+      <div class="col"></div>
+      <div class="col-16">
+        The datasets that were used for these maps were found in multiple different sources. The crimes dataset were aggragated from the UCPD Nixle Emails and the Berkeley Police Department Dataset. The street lights dataset was also found in the Berkeley District Open Data. Finally, the emergency phone booth and the on campus lamps dataset was found from a pdf from UCPD, but I manually mapped out both in geojson.io.
+      </div>
+      <div class="col"></div>
+    </div>
+  </div>
+</section>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script>
+$(document).ready(function(){
+  $("button").click(function(){
+    $(".splash").remove();
+  });
+});
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic2V0aGR1bWFndWluIiwiYSI6ImNqc3V0b3VpdDAwMG80NW4ybzNlemZ6cXUifQ.KK93d66y6-42q_dYdePojw';
+var bounds = [
+    [-122.278914, 37.852339], 
+    [-122.241794, 37.883639]
+];
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/sethdumaguin/cjv1ww3qx0xtz1fpeos15xwax',
+  center: [-122.259716, 37.870639],
+  zoom: 13,
+  // minZoom: 14,
+  maxBounds: bounds
+});
+
+map.on('load', function() {
+
+      var layers = ["0", "0.1", "0.3", "0.5", "0.7", "1"];
+      var colors = ['#0000ff', '#4169e1', '#00FFFF', '#00FF00', '#ffff00', '#ff0000'];
+
+      for (i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        var color = colors[i];
+        var item = document.createElement('div');
+        var key = document.createElement('span');
+        key.className = 'legend-key';
+        key.style.backgroundColor = color;
+
+        var value = document.createElement('span');
+        value.innerHTML = layer;
+        item.appendChild(key);
+        item.appendChild(value);
+        legend.appendChild(item);
+      }
+
+      map.on('mousemove', function(e) {
+      var crime = map.queryRenderedFeatures(e.point, {
+        layers: ['crime-data-time-1-51bbcx-pt']
+      });
+
+
+      if (crime.length > 0) {
+        console.log('Hello');
+        document.getElementById('pd').innerHTML = '<h3><strong>' + crime[0].properties.BLKADDR + '</strong></h3><p><strong><em>' + crime[0].properties.CVLEGEND + "<br>" + crime[0].properties.EVENTTM;
+      } else {
+        document.getElementById('pd').innerHTML = '<p>Hover a Crime Scene</p>';
+      }
+
+    });
+});
+
+map.getCanvas().style.cursor = 'default';
+
+map.addControl(new mapboxgl.NavigationControl());
+</script>
+
+</body>
+</html>
